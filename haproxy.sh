@@ -93,11 +93,11 @@ show_haproxy_status() {
 multiple_server_menu() {
 clear
     echo -e "Select an option:"
-    echo ''
+    echo
     echo -e "${GREEN}1. New Configuration${NC}"
     echo -e "${BLUE}2. Add a new config${NC}"
     echo -e "${RED}3. Quit${NC}"
-    echo ''
+    echo
     read -p "Enter your choice: " choice
     case $choice in
         1) configure_new_tunnel ;;
@@ -150,7 +150,8 @@ echo "    timeout client  50000ms" >> "$haproxy_config_file"
 echo "    timeout server  50000ms" >> "$haproxy_config_file"
 echo "" >> "$haproxy_config_file"
 
-    # Add multi-port support
+# Add multi-port support
+while true; do
     read -p "1. Enter HAProxy bind ports (e.g., 443,8443,2096): " haproxy_bind_ports
     read -p "2. Enter Destination ports (in the same order as HAProxy bind ports, e.g., 443,8443,2096): " destination_ports
     read -p "3. Enter Destination (Kharej) IP address: " destination_ip
@@ -186,7 +187,14 @@ echo "" >> "$haproxy_config_file"
         echo "    server server_$haproxy_bind_port $destination_ip:$destination_port" >> "$haproxy_config_file"
         echo "" >> "$haproxy_config_file"
     done
- 
+    echo
+    read -p "Do you want to add another config? (yes/no): " add_another
+    echo
+    if [[ $add_another != "yes" ]]; then
+        break
+    fi
+done
+
 echo
 echo -e "${GREEN}Configuration updated successfully in $haproxy_config_file${NC}"
 
@@ -194,7 +202,7 @@ echo -e "${GREEN}Configuration updated successfully in $haproxy_config_file${NC}
     # Restart HAProxy service
     systemctl restart haproxy
     
-    echo 
+    echo
     read -p "Press Enter to continue..."
 }
 
@@ -202,7 +210,7 @@ echo -e "${GREEN}Configuration updated successfully in $haproxy_config_file${NC}
 add_new_server(){
 # Verify if the file exists, if not, return
 if [ ! -f "$haproxy_config_file" ]; then
-     echo ''
+     echo
      echo -e "${RED} There is no HAProxy config. First configurate a tunnel through option 1${NC}\n"
      read -p "Press Enter to continue..."
      return 1
@@ -223,9 +231,9 @@ while true; do
     echo "backend backend_$haproxy_bind_port" >> "$haproxy_config_file"
     echo "    server server_$haproxy_bind_port $destination_ip:$destination_port" >> "$haproxy_config_file"
     echo "" >> "$haproxy_config_file"
-	echo ''
+	echo
     read -p "Do you want to add another config? (yes/no): " add_another
-    echo ''
+    echo
     if [[ $add_another != "yes" ]]; then
         break
     fi
@@ -235,7 +243,7 @@ echo -e "${GREEN}Configuration updated successfully in $haproxy_config_file${NC}
   
     # Restart HAProxy service
     systemctl restart haproxy
-    echo ''
+    echo
     read -p "Press Enter to continue..."
 }
 
@@ -244,7 +252,7 @@ load_balancing() {
 clear
 # Prompt the user for confirmation
 read -p "All your previous configs will be deleted, continue? (yes/no): " confirm
-echo ''
+echo
 # Check user's response
 if ! [[ $confirm == "yes" || $confirm == "Yes" || $confirm == "YES" ]]; then
 	echo -e "${RED}Operation cancelled by user.${NC}" && sleep 1
@@ -297,7 +305,7 @@ echo "" >> "$haproxy_config_file"
     esac
  
  #Prompt the user for HAProxy bind port   
-echo ''
+echo
 read -p "*. Enter HAProxy bind port for load balancing: " haproxy_bind_port
 echo "frontend tcp_frontend" >> "$haproxy_config_file"
 echo "    bind *:${haproxy_bind_port}" >> "$haproxy_config_file"
@@ -312,13 +320,13 @@ clear
 # Prompt the user for corresponding Destination IP and port
 server=1
 while true; do
-	echo ''
+	echo
     read -p "1. Enter Destination IP address for loadbalancing: " destination_ip
     read -p "2. Enter Destination port for loadbalancing: " destination_port
     
 echo "    server server${server} ${destination_ip}:${destination_port} check" >> "$haproxy_config_file"
     
-    echo ''
+    echo
     read -p "Do you want to add another server for load balancing? (yes/no): " add_another
 
     if [[ $add_another != "yes" ]]; then
@@ -328,21 +336,21 @@ echo "    server server${server} ${destination_ip}:${destination_port} check" >>
     clear
 done
 
-echo ''
+echo
 echo -e "${GREEN}Configuration updated successfully in $haproxy_config_file${NC}"
 
   
     # Restart HAProxy service
     systemctl restart haproxy
     
-    echo ''
+    echo
     read -p "Press Enter to continue..."
     
 }
 
 # Function to destroy tunnel
 destroy_tunnel() {
-echo ''
+echo
 # Check if HAProxy service is running
 if systemctl is-active --quiet haproxy; then
     echo -e "${RED}Stopping HAProxy service...${NC}\n"
@@ -354,7 +362,7 @@ else
     echo -e "${YELLOW}HAProxy service is not running.${NC}"
 fi
 
-echo ''
+echo
 # Check if the file exists
 if [ -f "$haproxy_config_file" ]; then
     echo -e "${RED}Removing ${haproxy_config_file}...${NC}\n"
@@ -366,7 +374,7 @@ else
     echo -e "${YELLOW}$haproxy_config_file does not exist.${NC}"
 fi
 
-echo ''
+echo
     read -p "Press Enter to continue..."
 }
 
@@ -376,14 +384,14 @@ echo -e "\n${YELLOW}Restarting HAProxy service...${NC}\n"
 sleep 1
 # Restart HAProxy
 echo "Restarting HAProxy..."
-echo ''
+echo
 if systemctl restart haproxy ; then
     echo -e "${GREEN}HAProxy restarted successfully.${NC}"
 else
     echo -e "${RED}Error: Failed to restart HAProxy.${NC}"
 fi
 
-echo ''
+echo
 read -p "Press Enter to continue..."
 }
 
